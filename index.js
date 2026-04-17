@@ -21,7 +21,7 @@ const OWNER = "Simon Salem";
 const OWNER_NUMBER = "254782972716";
 const PREFIX = "!";
 
-// --- DISCORD INITIALIZATION ---
+// --- DISCORD SETUP ---
 const discordClient = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -31,8 +31,10 @@ const discordClient = new Client({
 });
 
 async function startSalemOS() {
-    // Ensure the session directory exists for Railway persistence
-    if (!fs.existsSync('./salem_session')) fs.mkdirSync('./salem_session');
+    // Create session folder if it doesn't exist
+    if (!fs.existsSync('./salem_session')) {
+        fs.mkdirSync('./salem_session');
+    }
     
     const { state, saveCreds } = await useMultiFileAuthState('./salem_session');
     const { version } = await fetchLatestBaileysVersion();
@@ -45,22 +47,22 @@ async function startSalemOS() {
         },
         printQRInTerminal: false,
         logger: pino({ level: "silent" }),
-        browser: ["Railway", "Chrome", "20.0.04"]
+        browser: ["Ubuntu", "Chrome", "20.0.04"]
     });
 
-    // RAILWAY PAIRING LOGIC
+    // PAIRING CODE LOGIC
     if (!sock.authState.creds.registered) {
-        console.log(`\x1b[36m[ LOGGING ] Connecting to ${OWNER_NUMBER}...\x1b[0m`);
+        console.log(`\x1b[36m[ LOGGING ] Initializing connection for ${OWNER_NUMBER}...\x1b[0m`);
         setTimeout(async () => {
             try {
                 let code = await sock.requestPairingCode(OWNER_NUMBER);
                 console.log(`\n\x1b[45m[ SIMON SALEM PAIRING CODE ]\x1b[0m`);
                 console.log(`\x1b[1m\x1b[32mCODE: ${code}\x1b[0m`);
-                console.log(`\x1b[37mGo to WhatsApp > Linked Devices > Link with Phone Number\x1b[0m\n`);
+                console.log(`\x1b[37mEnter this in WhatsApp > Linked Devices > Link with Phone Number\x1b[0m\n`);
             } catch (err) {
-                console.log("Retrying pairing code generation...");
+                console.log("Error fetching pairing code. Retrying...");
             }
-        }, 6000);
+        }, 8000); // 8 second delay to ensure socket readiness
     }
 
     sock.ev.on("creds.update", saveCreds);
@@ -69,59 +71,57 @@ async function startSalemOS() {
         const { connection, lastDisconnect } = update;
         if (connection === "close") {
             const reason = lastDisconnect?.error?.output?.statusCode;
-            if (reason !== DisconnectReason.loggedOut) startSalemOS();
+            if (reason !== DisconnectReason.loggedOut) {
+                console.log("[SYSTEM] Reconnecting...");
+                startSalemOS();
+            }
         } else if (connection === "open") {
-            console.log(`\x1b[32m[ONLINE]\x1b[0m ${OWNER}'s WhatsApp Matrix is Active.`);
+            console.log(`\x1b[32m[ONLINE]\x1b[0m ${OWNER}'s WhatsApp Network is Active.`);
         }
     });
 
-    // --- BUG COMMAND HANDLER ---
+    // --- DISCORD BUG COMMANDS ---
     discordClient.on('messageCreate', async (message) => {
         if (!message.content.startsWith(PREFIX) || message.author.bot) return;
 
         const args = message.content.slice(PREFIX.length).trim().split(/ +/);
         const command = args.shift().toLowerCase();
 
-        // KILL: Notification Overload
+        // 1. KILL (WhatsApp Flood)
         if (command === 'kill') {
             const target = args[0];
-            if (!target) return message.reply("Target required: `!kill 254XXXXXXXXX`.");
+            if (!target) return message.reply("Target number required (e.g., 254712345678).");
             
-            message.reply(`🧪 **SIMON SALEM:** Deploying infestation to ${target}...`);
+            message.reply(`🧪 **SIMON SALEM:** Sending bugs to ${target}...`);
             for (let i = 0; i < 7; i++) {
                 await sock.sendMessage(`${target}@s.whatsapp.net`, { 
                     text: `🐛 *CRITICAL BUG: INFESTATION BY ${OWNER.toUpperCase()}* 🐛` 
                 });
-                await delay(800);
+                await delay(1000);
             }
-            return message.channel.send(`✅ **Extermination complete.** Target ${target} has been bugged.`);
+            return message.channel.send(`✅ **Success.** Target ${target} has been bugged.`);
         }
 
-        // STING: Branded Direct Message
+        // 2. STING (Direct Message)
         if (command === 'sting') {
             const target = args[0];
             const msg = args.slice(1).join(' ');
             if (!target || !msg) return message.reply("Usage: `!sting [number] [message]`");
 
             await sock.sendMessage(`${target}@s.whatsapp.net`, { 
-                text: `🐝 *STING FROM ${OWNER.toUpperCase()} NETWORK:* \n\n"${msg}"` 
+                text: `🐝 *STING BY ${OWNER.toUpperCase()}:* \n\n"${msg}"` 
             });
             return message.reply(`✅ Sting injected into ${target}.`);
         }
 
-        // HIVE: System Status
-        if (command === 'hive' || command === 'status') {
-            const hiveEmbed = new EmbedBuilder()
-                .setTitle(`🕸️ ${OWNER}'s Apex Core Status`)
+        // 3. STATUS
+        if (command === 'status' || command === 'salem') {
+            const statusEmbed = new EmbedBuilder()
+                .setTitle(`🕸️ ${OWNER} Apex Core Status`)
                 .setColor(0x00FFBB)
-                .addFields(
-                    { name: 'Developer', value: OWNER, inline: true },
-                    { name: 'WhatsApp', value: 'Connected', inline: true },
-                    { name: 'Targeting', value: OWNER_NUMBER, inline: true }
-                )
-                .setFooter({ text: `SALEM-OS: Railway Edition` })
-                .setTimestamp();
-            return message.reply({ embeds: [hiveEmbed] });
+                .setDescription(`📡 **Status:** Active\n📱 **WhatsApp:** Linked to ${OWNER_NUMBER}`)
+                .setFooter({ text: `SALEM-OS: Confirmed Build` });
+            return message.reply({ embeds: [statusEmbed] });
         }
     });
 
@@ -133,4 +133,4 @@ async function startSalemOS() {
     discordClient.login(process.env.BOT_TOKEN);
 }
 
-startSalemOS();
+startSalemOS().catch(err => console.error("FATAL_STARTUP_ERROR:", err));
