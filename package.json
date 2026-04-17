@@ -1,15 +1,11 @@
 {
   "name": "simon-salem-bug-bot",
-  "version": "2.1.0",
-  "description": "Refined persistence bot by Simon Salem",
+  "version": "1.0.0",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
     "discord.js": "^14.14.1"
-  },
-  "engines": {
-    "node": ">=18.x"
   }
 }
