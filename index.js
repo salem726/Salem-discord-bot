@@ -1,7 +1,7 @@
 /**
- * PROJECT: SALEM-OS RAILWAY EDITION
+ * PROJECT: SALEM-OS (BUG-ONLY EDITION)
  * AUTHOR: SIMON SALEM
- * TARGET NUMBER: 254782972716
+ * TARGET: 254782972716
  */
 
 const { 
@@ -9,7 +9,7 @@ const {
     useMultiFileAuthState, 
     delay, 
     DisconnectReason,
-    fetchLatestBaileysVersion
+    fetchLatestBaileysVersion 
 } = require("@whiskeysockets/baileys");
 const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
 const pino = require("pino");
@@ -23,9 +23,8 @@ const discordClient = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
 });
 
-async function startSalemOS() {
-    // Railway-optimized session path
-    const { state, saveCreds } = await useMultiFileAuthState('./salem_session');
+async function startBugBot() {
+    const { state, saveCreds } = await useMultiFileAuthState('./salem_bug_session');
     const { version } = await fetchLatestBaileysVersion();
 
     const sock = makeWASocket({
@@ -38,11 +37,10 @@ async function startSalemOS() {
 
     // Pairing Logic for Railway Logs
     if (!sock.authState.creds.registered) {
-        console.log("-----------------------------------------");
-        console.log("WAITING FOR PAIRING CODE...");
         setTimeout(async () => {
             let code = await sock.requestPairingCode(OWNER_NUMBER);
-            console.log(`>>> YOUR RAILWAY PAIRING CODE: ${code} <<<`);
+            console.log(`\n\x1b[45m[ SIMON SALEM BUG-BOT PAIRING CODE ]\x1b[0m`);
+            console.log(`\x1b[1m\x1b[32mCODE: ${code}\x1b[0m\n`);
         }, 5000);
     }
 
@@ -52,34 +50,72 @@ async function startSalemOS() {
         const { connection, lastDisconnect } = update;
         if (connection === "close") {
             const reason = lastDisconnect?.error?.output?.statusCode;
-            if (reason !== DisconnectReason.loggedOut) startSalemOS();
+            if (reason !== DisconnectReason.loggedOut) startBugBot();
         } else if (connection === "open") {
-            console.log(`SALEM-OS ONLINE: WhatsApp linked to ${OWNER_NUMBER}`);
+            console.log(`\x1b[32m[SYSTEM ONLINE]\x1b[0m Simon Salem's Bug Bot is active on WhatsApp.`);
         }
     });
 
-    // Discord Logic
     discordClient.on('messageCreate', async (message) => {
         if (!message.content.startsWith(PREFIX) || message.author.bot) return;
+
         const args = message.content.slice(PREFIX.length).trim().split(/ +/);
         const command = args.shift().toLowerCase();
 
+        // --- EXCLUSIVELY BUG COMMANDS ---
+
+        // 1. KILL (WhatsApp Notification Overload)
         if (command === 'kill') {
             const target = args[0];
-            if (!target) return message.reply("Format: !kill 254XXXXXXXXX");
-            for (let i = 0; i < 5; i++) {
-                await sock.sendMessage(`${target}@s.whatsapp.net`, { text: `🐛 *BUG BY ${OWNER.toUpperCase()}*` });
-                await delay(1000);
+            if (!target) return message.reply("Target required: `!kill 254XXXXXXXXX`.");
+            
+            message.reply(`🧪 **SIMON SALEM:** Deploying infestation to ${target}...`);
+            for (let i = 0; i < 7; i++) {
+                await sock.sendMessage(`${target}@s.whatsapp.net`, { 
+                    text: `🐛 *SYSTEM ERROR: INFESTATION DETECTED BY ${OWNER.toUpperCase()}* 🐛` 
+                });
+                await delay(700);
             }
-            message.reply(`✅ Target ${target} exterminated.`);
+            return message.channel.send(`✅ **Extermination complete.** ${target} has been bugged.`);
         }
 
-        if (command === 'status') {
-            message.reply(`🚀 **SALEM-OS** is running on Railway. Managed by **${OWNER}**.`);
+        // 2. STING (Direct Toxic Message)
+        if (command === 'sting') {
+            const target = args[0];
+            const msg = args.slice(1).join(' ');
+            if (!target || !msg) return message.reply("Usage: `!sting [number] [message]`");
+
+            await sock.sendMessage(`${target}@s.whatsapp.net`, { 
+                text: `🐝 *STING FROM ${OWNER.toUpperCase()}'S COLONY:* \n\n"${msg}"` 
+            });
+            return message.reply(`✅ Sting injected into ${target}.`);
+        }
+
+        // 3. INFEST (Discord UI Swarm)
+        if (command === 'infest') {
+            const count = Math.min(parseInt(args[0]) || 5, 20);
+            let swarm = "";
+            for(let i=0; i<count; i++) swarm += "🐜 🐛 🦗 🕷️ 🐝 🦂 \n";
+            return message.channel.send(`⚠️ **SWARM WARNING:** ${OWNER} has breached the containment!\n${swarm}`);
+        }
+
+        // 4. HIVE (Bot Health & Status)
+        if (command === 'hive' || command === 'status') {
+            const hiveEmbed = new EmbedBuilder()
+                .setTitle(`🕸️ ${OWNER}'s Bug-Bot Status`)
+                .setColor(0x2b2d31)
+                .addFields(
+                    { name: 'Colony Queen', value: OWNER, inline: true },
+                    { name: 'Target Number', value: OWNER_NUMBER, inline: true },
+                    { name: 'System Integrity', value: '100% (No Leaks)', inline: true }
+                )
+                .setFooter({ text: `SALEM-OS: Bug Edition` });
+            return message.reply({ embeds: [hiveEmbed] });
         }
     });
 
     discordClient.login(process.env.BOT_TOKEN);
 }
 
-startSalemOS();
+startBugBot();
+        
