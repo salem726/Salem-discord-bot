@@ -8,60 +8,52 @@ const client = new Client({
     ],
 });
 
-// Using Environment Variables for security on Railway
-const TOKEN = process.env.DISCORD_TOKEN;
+// Simon Salem Identity Config
 const OPERATOR = "Simon Salem";
+const TOKEN = process.env.DISCORD_TOKEN; 
 
 client.once('ready', () => {
-    console.log(`=========================================`);
-    console.log(`SYSTEM ACTIVE: Persistence Protocol`);
-    console.log(`OPERATOR: ${OPERATOR}`);
-    console.log(`BOT IDENTITY: ${client.user.tag}`);
-    console.log(`=========================================`);
+    console.log(`-----------------------------------------`);
+    console.log(`[SYSTEM]: Simon Salem's Bug Bot is LIVE`);
+    console.log(`[STATUS]: Connected as ${client.user.tag}`);
+    console.log(`-----------------------------------------`);
 });
 
 client.on('messageCreate', async (message) => {
+    // Ignore other bots
     if (message.author.bot) return;
 
     const args = message.content.split(' ');
     const command = args[0].toLowerCase();
-    const target = message.mentions.users.first();
 
-    // Command: !bug @user [count]
+    // COMMAND: !bug @user
     if (command === '!bug') {
-        if (!target) return message.reply("Command Error: Specify a target to bug.");
-        
-        const count = parseInt(args[2]) || 5; // Defaults to 5 pings if no number provided
-        const limit = count > 20 ? 20 : count; // Safety cap at 20 to prevent Railway API kills
+        const target = message.mentions.users.first();
+        if (!target) return message.reply("Target required! 🪲");
 
-        message.channel.send(`[${OPERATOR} LOG]: Initiating bug sequence on ${target.username}...`);
+        console.log(`[${OPERATOR} LOG]: Initiating pings on ${target.tag}`);
 
-        for (let i = 0; i < limit; i++) {
-            await message.channel.send(`${target} - **Simon Salem** requires your attention! (${i + 1}/${limit})`);
-            // 1.5 second delay to keep the connection stable on Railway
-            await new Promise(resolve => setTimeout(resolve, 1500));
-        }
-        
-        message.channel.send(`[${OPERATOR} LOG]: Sequence complete.`);
-    }
-
-    // Command: !ghost @user
-    if (command === '!ghost') {
-        if (!target) return message.reply("Target required for Ghost Protocol.");
-        
-        message.channel.send(`[${OPERATOR} LOG]: Deploying invisible pings.`);
-        
-        for (let i = 0; i < 5; i++) {
-            const ghostMsg = await message.channel.send(`${target}`);
-            await ghostMsg.delete();
-            await new Promise(resolve => setTimeout(resolve, 1000));
+        // Small loop for persistence
+        for (let i = 0; i < 15; i++) {
+            try {
+                await message.channel.send(`🪲 **BUGGED** by ${OPERATOR}: ${target} wake up!`);
+                // 1.2 second delay avoids Discord's immediate spam filter
+                await new Promise(r => setTimeout(r, 1200));
+            } catch (err) {
+                console.log(`[${OPERATOR} ERROR]: Rate limit hit or missing permissions.`);
+                break;
+            }
         }
     }
-});
 
-// Error handling to prevent the bot from crashing on Railway
-process.on('unhandledRejection', error => {
-    console.error(`[${OPERATOR} SYSTEM ERROR]:`, error);
+    // COMMAND: !raid (Spams the general channel with Simon's name)
+    if (command === '!raid') {
+        message.channel.send(`🚨 RAID PROTOCOL BY ${OPERATOR} ACTIVATED 🚨`);
+        for (let i = 0; i < 10; i++) {
+            await message.channel.send("🪲🪲🪲 BUGGING IN PROGRESS 🪲🪲🪲");
+            await new Promise(r => setTimeout(r, 1000));
+        }
+    }
 });
 
 client.login(TOKEN);
