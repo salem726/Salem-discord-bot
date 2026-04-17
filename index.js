@@ -5,18 +5,19 @@ const client = new Client({
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent,
-        GatewayIntentBits.DirectMessages
     ],
 });
 
-const TOKEN = 'YOUR_BOT_TOKEN_HERE';
-const AUTHOR_NAME = 'Gemini'; // Your name added to the identity
+// Using Environment Variables for security on Railway
+const TOKEN = process.env.DISCORD_TOKEN;
+const OPERATOR = "Simon Salem";
 
 client.once('ready', () => {
-    console.log(`-----------------------------------------`);
-    console.log(`System Online: Managed by ${AUTHOR_NAME}`);
-    console.log(`Logged in as ${client.user.tag}`);
-    console.log(`-----------------------------------------`);
+    console.log(`=========================================`);
+    console.log(`SYSTEM ACTIVE: Persistence Protocol`);
+    console.log(`OPERATOR: ${OPERATOR}`);
+    console.log(`BOT IDENTITY: ${client.user.tag}`);
+    console.log(`=========================================`);
 });
 
 client.on('messageCreate', async (message) => {
@@ -26,45 +27,41 @@ client.on('messageCreate', async (message) => {
     const command = args[0].toLowerCase();
     const target = message.mentions.users.first();
 
-    // 1. THE STANDARD BUG (!bug @user)
+    // Command: !bug @user [count]
     if (command === '!bug') {
-        if (!target) return message.reply("Who am I bugging? Tag someone.");
+        if (!target) return message.reply("Command Error: Specify a target to bug.");
         
-        message.channel.send(`[${AUTHOR_NAME} Protocol]: Targeting ${target.username}...`);
-        
-        for (let i = 0; i < 10; i++) {
-            await message.channel.send(`Hey ${target}! Answer the message!`);
-            await new Promise(r => setTimeout(r, 1500)); // 1.5s delay to prevent API bans
+        const count = parseInt(args[2]) || 5; // Defaults to 5 pings if no number provided
+        const limit = count > 20 ? 20 : count; // Safety cap at 20 to prevent Railway API kills
+
+        message.channel.send(`[${OPERATOR} LOG]: Initiating bug sequence on ${target.username}...`);
+
+        for (let i = 0; i < limit; i++) {
+            await message.channel.send(`${target} - **Simon Salem** requires your attention! (${i + 1}/${limit})`);
+            // 1.5 second delay to keep the connection stable on Railway
+            await new Promise(resolve => setTimeout(resolve, 1500));
         }
+        
+        message.channel.send(`[${OPERATOR} LOG]: Sequence complete.`);
     }
 
-    // 2. THE GHOST BUG (!ghost @user) - Pings then deletes immediately
+    // Command: !ghost @user
     if (command === '!ghost') {
-        if (!target) return message.reply("Target required for Ghost protocol.");
+        if (!target) return message.reply("Target required for Ghost Protocol.");
+        
+        message.channel.send(`[${OPERATOR} LOG]: Deploying invisible pings.`);
         
         for (let i = 0; i < 5; i++) {
-            const msg = await message.channel.send(`${target}`);
-            await msg.delete();
-            await new Promise(r => setTimeout(r, 1000));
-        }
-        message.channel.send(`Ghost pings completed by ${AUTHOR_NAME}.`);
-    }
-
-    // 3. THE DM BLAST (!blast @user)
-    if (command === '!blast') {
-        if (!target) return message.reply("Tag a victim.");
-        
-        try {
-            message.channel.send(`Infiltrating DMs for ${target.username}...`);
-            for (let i = 0; i < 5; i++) {
-                await target.send(`🔔 BEEP BEEP 🔔 This is a priority alert from ${AUTHOR_NAME}!`);
-                await new Promise(r => setTimeout(r, 2000));
-            }
-        } catch (err) {
-            message.channel.send(`Could not DM ${target.username}. They likely have DMs closed.`);
+            const ghostMsg = await message.channel.send(`${target}`);
+            await ghostMsg.delete();
+            await new Promise(resolve => setTimeout(resolve, 1000));
         }
     }
 });
 
+// Error handling to prevent the bot from crashing on Railway
+process.on('unhandledRejection', error => {
+    console.error(`[${OPERATOR} SYSTEM ERROR]:`, error);
+});
+
 client.login(TOKEN);
-        
