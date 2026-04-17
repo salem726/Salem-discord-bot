@@ -1,7 +1,7 @@
 {
   "name": "simon-salem-bug-bot",
-  "version": "1.0.0",
-  "description": "Lightweight Discord spam bot for Railway",
+  "version": "2.1.0",
+  "description": "Refined persistence bot by Simon Salem",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
@@ -10,6 +10,6 @@
     "discord.js": "^14.14.1"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=18.x"
   }
 }
