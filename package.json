@@ -1,7 +1,7 @@
 {
-  "name": "simon-salem-persistence-bot",
-  "version": "2.0.0",
-  "description": "High-intensity Discord notification bot for Railway deployment",
+  "name": "simon-salem-bug-bot",
+  "version": "1.0.0",
+  "description": "Lightweight Discord spam bot for Railway",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
