@@ -1,12 +1,15 @@
 {
-  "name": "persistence-bot",
-  "version": "1.1.0",
-  "description": "A high-intensity notification bot by Gemini",
+  "name": "simon-salem-persistence-bot",
+  "version": "2.0.0",
+  "description": "High-intensity Discord notification bot for Railway deployment",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
     "discord.js": "^14.14.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
