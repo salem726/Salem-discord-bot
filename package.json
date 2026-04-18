@@ -1,6 +1,7 @@
 {
-  "name": "hello-discord-bot",
-  "version": "1.0.0",
+  "name": "salem-discord-fix",
+  "version": "1.1.0",
+  "description": "Stable Discord Bot for Railway",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
@@ -8,5 +9,8 @@
   "dependencies": {
     "discord.js": "^14.13.0",
     "dotenv": "^16.3.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
