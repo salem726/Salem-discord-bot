@@ -1,35 +1,39 @@
-const { Client, Events, GatewayIntentBits } = require('discord.js');
+const { Client, Events, GatewayIntentBits, ActivityType } = require('discord.js');
 require('dotenv').config();
 
-// Initialize client with mandatory 2026 Intents
 const client = new Client({ 
     intents: [
         GatewayIntentBits.Guilds, 
         GatewayIntentBits.GuildMessages, 
-        GatewayIntentBits.MessageContent // Necessary to read 'hello'
+        GatewayIntentBits.MessageContent 
     ] 
 });
 
-// Using the modern 'ClientReady' event to fix the warning in your logs
 client.once(Events.ClientReady, (c) => {
-    console.log(`✅ System Active! Logged in as ${c.user.tag}`);
+    console.log(`✅ Deployment Successful! Logged in as ${c.user.tag}`);
+    
+    // Set a custom status so you know the bot is live
+    client.user.setActivity('System Logs', { type: ActivityType.Watching });
 });
 
-// Command Listener
-client.on(Events.MessageCreate, (message) => {
-    // 1. Ignore messages from bots
+client.on(Events.MessageCreate, async (message) => {
+    // Ignore bots to prevent infinite loops
     if (message.author.bot) return;
 
-    // 2. Simple 'hello' response
-    if (message.content.toLowerCase() === 'hello') {
-        message.reply('Hi there! 👋 Your Discord bot is officially listening.');
+    const msg = message.content.toLowerCase();
+
+    if (msg === 'hello') {
+        message.reply('👋 I am back online! Build fixed.');
     }
 
-    // 3. Simple 'ping' response
-    if (message.content.toLowerCase() === '!ping') {
-        message.reply(`🏓 Pong! Latency is ${client.ws.ping}ms.`);
+    if (msg === '!status') {
+        message.reply('🛡️ **System Status:** Operational\n🚀 **Platform:** Railway');
     }
 });
 
-// Start the bot
+// Safety: Handle unhandled promise rejections to keep the bot from crashing
+process.on('unhandledRejection', error => {
+    console.error('Unhandled promise rejection:', error);
+});
+
 client.login(process.env.DISCORD_TOKEN);
