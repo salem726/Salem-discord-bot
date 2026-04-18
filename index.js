@@ -1,30 +1,35 @@
-const { Client, GatewayIntentBits } = require('discord.js');
+const { Client, Events, GatewayIntentBits } = require('discord.js');
 require('dotenv').config();
 
-// Create a new client instance
+// Initialize client with mandatory 2026 Intents
 const client = new Client({ 
     intents: [
         GatewayIntentBits.Guilds, 
         GatewayIntentBits.GuildMessages, 
-        GatewayIntentBits.MessageContent 
+        GatewayIntentBits.MessageContent // Necessary to read 'hello'
     ] 
 });
 
-// When the bot is ready, run this code
-client.once('ready', () => {
-    console.log(`Ready! Logged in as ${client.user.tag}`);
+// Using the modern 'ClientReady' event to fix the warning in your logs
+client.once(Events.ClientReady, (c) => {
+    console.log(`✅ System Active! Logged in as ${c.user.tag}`);
 });
 
-// Listen for messages
-client.on('messageCreate', (message) => {
-    // 1. Ignore messages from other bots
+// Command Listener
+client.on(Events.MessageCreate, (message) => {
+    // 1. Ignore messages from bots
     if (message.author.bot) return;
 
-    // 2. Respond to 'hello'
+    // 2. Simple 'hello' response
     if (message.content.toLowerCase() === 'hello') {
-        message.reply('Hi there! 👋 I am online and ready to help.');
+        message.reply('Hi there! 👋 Your Discord bot is officially listening.');
+    }
+
+    // 3. Simple 'ping' response
+    if (message.content.toLowerCase() === '!ping') {
+        message.reply(`🏓 Pong! Latency is ${client.ws.ping}ms.`);
     }
 });
 
-// Login to Discord with your client's token
+// Start the bot
 client.login(process.env.DISCORD_TOKEN);
